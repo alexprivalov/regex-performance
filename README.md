@@ -23,6 +23,12 @@ and the sljit project (See their regex comparison [here](http://sljit.sourceforg
 
 (*) Tested with named version only. Older versions may work too.
 
+install Rust
+```
+curl https://sh.rustup.rs -sSf | sh
+```
+
+
 ## Supported engines
 The following regex engines are supported and covered by the tool:
 - [Hyperscan](https://github.com/01org/hyperscan)
