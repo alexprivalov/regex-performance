@@ -72,7 +72,7 @@ The test tool calls each engine with a defined set of different regular expressi
 The repository contains a ~16Mbyte large text file (3200.txt) which can be used for measuring.
 
 ```bash
-./src/regex_perf -f ./3200.txt
+./src/regex_perf -f ../3200.txt
 ```
 
 By default, the tool repeats each test 5 times and prints the best time of each test.
@@ -83,6 +83,6 @@ the absolut time value.
 
 You can specify a file to write the test results per expression and engine:
 ```bash
-./src/regex_perf -f ./3200.txt -o ./results.csv
+./src/regex_perf -f ../3200.txt -o ../results.csv
 ```
 The test tool writes the results in a csv-compatible format.
