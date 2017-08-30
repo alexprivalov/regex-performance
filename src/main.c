@@ -177,15 +177,23 @@ int main(int argc, char **argv)
     char const * file = NULL;
     char * out_file = NULL;
     int repeat = 5;
+    int mode = 0;
     int c = 0;
 
-    while ((c = getopt(argc, argv, "n:hvf:o:")) != -1) {
+    while ((c = getopt(argc, argv, "n:m:hvf:o:")) != -1) {
         switch (c) {
             case 'f':
                 file = optarg;
                 break;
             case 'n':
                 repeat = atoi(optarg);
+                break;
+            case 'm':
+                mode = atoi(optarg);
+                if ((mode != 0) && (mode != 1)) {
+                    printf("Mode input error!\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
             case 'o':
                 out_file = optarg;
@@ -198,6 +206,7 @@ int main(int argc, char **argv)
                 printf("Options:\n");
                 printf("  -f\tInput file.\n");
                 printf("  -n\tSet number of repetitions. Default: 5\n");
+                printf("  -m\tSet mode (0: regex one by one; 1: regex together). Default: 0\n");
                 printf("  -o\tWrite measured data into CSV file.\n");
                 printf("  -v\tGet the application version and build date.\n");
                 printf("  -h\tPrint this help message\n\n");
@@ -215,63 +224,70 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    struct result results[sizeof(regex)/sizeof(regex[0])][sizeof(engines)/sizeof(engines[0])] = {0};
-    struct result engine_results[sizeof(engines)/sizeof(engines[0])] = {0};
+    if (mode == 0) {
+        printf("\n[Match regex patterns one by one]\n\n");
 
-    for (int iter = 0; iter < sizeof(regex)/sizeof(regex[0]); iter++) {
-        find_all(regex[iter], data, data_len, repeat, results[iter]);
+        struct result results[sizeof(regex)/sizeof(regex[0])][sizeof(engines)/sizeof(engines[0])] = {0};
+        struct result engine_results[sizeof(engines)/sizeof(engines[0])] = {0};
 
-        for (int iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-            engine_results[iiter].time += results[iter][iiter].time;
-            engine_results[iiter].score += results[iter][iiter].score;
-        }
-    }
+        for (int iter = 0; iter < sizeof(regex)/sizeof(regex[0]); iter++) {
+            find_all(regex[iter], data, data_len, repeat, results[iter]);
 
-    fprintf(stdout, "-----------------\nTotal Results:\n");
-    for (int iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-        fprintf(stdout, "[%10s] time:  %7.1f ms, score: %6u points,\n", engines[iter].name, engine_results[iter].time, engine_results[iter].score);
-    }
-
-    if (out_file != NULL) {
-        int iter, iiter;
-
-        FILE * f;
-        f = fopen(out_file, "w");
-        if (!f) {
-            fprintf(stderr, "Cannot open '%s'!\n", out_file);
-            exit(EXIT_FAILURE);
-        }
-
-        /* write table header*/
-        fprintf(f, "regex;");
-        for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-            fprintf(f, "%s [ms];", engines[iter].name);
-        }
-        for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-            fprintf(f, "%s [sp];", engines[iter].name);
-        }
-        for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-            fprintf(f, "%s [matches];", engines[iter].name);
-        }
-        fprintf(f, "\n");
-
-        /* write data */
-        for (iter = 0; iter < sizeof(regex)/sizeof(regex[0]); iter++) {
-            fprintf(f, "%s;", regex[iter]);
-
-            for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-                fprintf(f, "%7.1f;", results[iter][iiter].time);
+            for (int iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                engine_results[iiter].time += results[iter][iiter].time;
+                engine_results[iiter].score += results[iter][iiter].score;
             }
-            for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-                fprintf(f, "%d;", results[iter][iiter].score);
+        }
+
+        fprintf(stdout, "-----------------\nTotal Results:\n");
+        for (int iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+            fprintf(stdout, "[%10s] time:  %7.1f ms, score: %6u points,\n", engines[iter].name, engine_results[iter].time, engine_results[iter].score);
+        }
+
+        if (out_file != NULL) {
+            int iter, iiter;
+
+            FILE * f;
+            f = fopen(out_file, "w");
+            if (!f) {
+                fprintf(stderr, "Cannot open '%s'!\n", out_file);
+                exit(EXIT_FAILURE);
             }
-            for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-                fprintf(f, "%d;", results[iter][iiter].matches);
+
+            /* write table header*/
+            fprintf(f, "regex;");
+            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+                fprintf(f, "%s [ms];", engines[iter].name);
+            }
+            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+                fprintf(f, "%s [sp];", engines[iter].name);
+            }
+            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+                fprintf(f, "%s [matches];", engines[iter].name);
             }
             fprintf(f, "\n");
+
+            /* write data */
+            for (iter = 0; iter < sizeof(regex)/sizeof(regex[0]); iter++) {
+                fprintf(f, "%s;", regex[iter]);
+
+                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                    fprintf(f, "%7.1f;", results[iter][iiter].time);
+                }
+                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                    fprintf(f, "%d;", results[iter][iiter].score);
+                }
+                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                    fprintf(f, "%d;", results[iter][iiter].matches);
+                }
+                fprintf(f, "\n");
+            }
+
+            fclose(f);
         }
 
-        fclose(f);
+    } else {
+        printf("\n[Match regex patterns all together]\n\n");
     }
 
     free(data);
