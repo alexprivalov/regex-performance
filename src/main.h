@@ -12,7 +12,7 @@ extern "C" {
 #define TIME_DIFF_IN_MS(begin, end) (((double) (end - start)) * 1000 / CLOCKS_PER_SEC)
 #define UNUSED __attribute__((unused))
 #define MAX_RULES 1000
-#define MAX_REGEX_LEN 100
+#define MAX_REGEX_LEN 1000
 
 struct result {
     int score;
