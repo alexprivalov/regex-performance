@@ -22,6 +22,10 @@ int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, in
     TIME_TYPE start = 0, end = 0;
     int found = 0;
 
+    double pre_times = 0;
+
+    GET_TIME(start);
+
     comp_ctx = pcre2_compile_context_create(NULL);
     if (!comp_ctx) {
         printf("PCRE2 cannot allocate compile context\n");
@@ -50,6 +54,9 @@ int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, in
         printf("PCRE JIT cannot allocate match context\n");
         return -1;
     }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     if (mode == 2) {
         if (pcre2_jit_compile(re, PCRE2_JIT_COMPLETE)) {
@@ -172,7 +179,7 @@ int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, in
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
     if (stack)
         pcre2_jit_stack_free(stack);

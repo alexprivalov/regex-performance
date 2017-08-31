@@ -9,11 +9,17 @@ int rust_find_all(char * pattern, char * subject, int subject_len, int repeat, s
     TIME_TYPE start, end;
     int found = 0;
 
+    double pre_times = 0;
+    GET_TIME(start);
+
     struct Regex const * regex_hdl = regex_new(pattern);
     if (regex_hdl == NULL) {
         fprintf(stderr, "ERROR: Unable to compile pattern \"%s\"\n", pattern);
         return -1;
     }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -28,7 +34,7 @@ int rust_find_all(char * pattern, char * subject, int subject_len, int repeat, s
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
     regex_free(regex_hdl);
     free(times);

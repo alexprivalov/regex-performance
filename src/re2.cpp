@@ -39,14 +39,21 @@ static int search_all_re2(void* obj, char* subject, int subject_len)
 
 extern "C" int re2_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res)
 {
-    void * obj = get_re2_object(pattern);
     TIME_TYPE start, end = 0;
+    double pre_times = 0;
+    GET_TIME(start);
+
+    void * obj = get_re2_object(pattern);
+    
     int found = 0;
 
     if (!obj) {
         printf("RE2 compilation failed\n");
         return -1;
     }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = (double*) std::calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -61,7 +68,7 @@ extern "C" int re2_find_all(char* pattern, char* subject, int subject_len, int r
 
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
     free_re2_object(obj);
     free(times);

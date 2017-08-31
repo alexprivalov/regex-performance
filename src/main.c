@@ -101,6 +101,7 @@ void find_all(char* pattern, char* subject, int subject_len, int repeat, struct 
     for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
         int ret = engines[iter].find_all(pattern, subject, subject_len, repeat, &(engine_results[iter]));
         if (ret == -1) {
+            engine_results[iter].pre_time = 0;
             engine_results[iter].time = 0;
             engine_results[iter].time_sd = 0;
             engine_results[iter].matches = 0;
@@ -133,7 +134,7 @@ void find_all(char* pattern, char* subject, int subject_len, int repeat, struct 
 
 }
 
-void get_mean_and_derivation(double * times, uint32_t times_len, struct result * res)
+void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res)
 {
     double mean, sd, var, sum = 0.0, sdev = 0.0;
     int32_t iter;
@@ -141,6 +142,8 @@ void get_mean_and_derivation(double * times, uint32_t times_len, struct result *
     if (times == NULL || res == NULL || times_len == 0) {
         return;
     }
+
+    res->pre_time = pre_times;
 
     if (times_len == 1) {
         res->time = times[0];
@@ -168,7 +171,7 @@ void get_mean_and_derivation(double * times, uint32_t times_len, struct result *
 
 void printResult(char * name, struct result * res)
 {
-    fprintf(stdout, "[%10s] time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name, res->time, (res->time_sd / res->time) * 100, res->matches);
+    fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name, res->pre_time, res->time, (res->time_sd / res->time) * 100, res->matches);
     fflush(stdout);
 }
 
@@ -234,14 +237,16 @@ int main(int argc, char **argv)
             find_all(regex[iter], data, data_len, repeat, results[iter]);
 
             for (int iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                engine_results[iiter].pre_time += results[iter][iiter].pre_time;
                 engine_results[iiter].time += results[iter][iiter].time;
+                engine_results[iiter].matches += results[iter][iiter].matches;
                 engine_results[iiter].score += results[iter][iiter].score;
             }
         }
 
         fprintf(stdout, "-----------------\nTotal Results:\n");
         for (int iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-            fprintf(stdout, "[%10s] time:  %7.1f ms, score: %6u points,\n", engines[iter].name, engine_results[iter].time, engine_results[iter].score);
+            fprintf(stdout, "[%10s] pre time: %7.4f ms | match time: %7.1f ms | matches: %8d | score: %6u points |\n", engines[iter].name, engine_results[iter].pre_time, engine_results[iter].time, engine_results[iter].matches, engine_results[iter].score);
         }
 
         if (out_file != NULL) {

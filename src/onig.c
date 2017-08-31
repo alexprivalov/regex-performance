@@ -12,6 +12,9 @@ int onig_find_all(char* pattern, char* subject, int subject_len, int repeat, str
 	TIME_TYPE start, end;
 	unsigned char *ptr;
 	int res, len, found = 0;
+	
+	double pre_times = 0;
+	GET_TIME(start);
 
 	res = onig_new(&reg, (unsigned char *)pattern, (unsigned char *)pattern + strlen((char* )pattern),
 		ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, NULL);
@@ -24,6 +27,9 @@ int onig_find_all(char* pattern, char* subject, int subject_len, int repeat, str
 		printf("Cannot allocate region\n");
 		return -1;
 	}
+
+	GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -48,7 +54,7 @@ int onig_find_all(char* pattern, char* subject, int subject_len, int repeat, str
 	} while (--repeat > 0);
 
 	result->matches = found;
-    get_mean_and_derivation(times, times_len, result);
+    get_mean_and_derivation(pre_times, times, times_len, result);
 
 	onig_region_free(region, 1);
 	onig_free(reg);

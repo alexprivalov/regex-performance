@@ -14,12 +14,13 @@ extern "C" {
 
 struct result {
     int score;
+    double pre_time;
     double time;
     double time_sd;
     int matches;
 };
 
-void get_mean_and_derivation(double * times, uint32_t times_len, struct result * res);
+void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res);
 void printResult(char * name, struct result * res);
 
 #ifdef INCLUDE_PCRE2

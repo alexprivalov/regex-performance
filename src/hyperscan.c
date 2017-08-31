@@ -20,8 +20,11 @@ static int eventHandler(UNUSED unsigned int  id,
 int hs_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res)
 {
     TIME_TYPE start, end;
-
     hs_database_t * database;
+
+    double pre_times = 0;
+    GET_TIME(start);
+
     hs_compile_error_t * compile_err;
     if (hs_compile(pattern, HS_FLAG_DOTALL | HS_FLAG_MULTILINE | HS_FLAG_SOM_LEFTMOST, HS_MODE_BLOCK, NULL, &database, &compile_err) != HS_SUCCESS) {
         fprintf(stderr, "ERROR: Unable to compile pattern \"%s\": %s\n",
@@ -36,6 +39,9 @@ int hs_find_all(char * pattern, char * subject, int subject_len, int repeat, str
         hs_free_database(database);
         return -1;
     }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -56,7 +62,7 @@ int hs_find_all(char * pattern, char * subject, int subject_len, int repeat, str
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
     hs_free_scratch(scratch);
     hs_free_database(database);
@@ -79,6 +85,9 @@ int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subj
         all_rule_ids[i] = i;
     }
 
+    double pre_times = 0;
+    GET_TIME(start);
+
     if (hs_compile_multi((const char *const *)pattern, all_flags, all_rule_ids, pattern_num, HS_MODE_BLOCK, NULL, &database, &compile_err) != HS_SUCCESS) {
         fprintf(stderr, "ERROR: Unable to compile patterns: %s\n", compile_err->message);
         hs_free_compile_error(compile_err);
@@ -91,6 +100,9 @@ int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subj
         hs_free_database(database);
         return -1;
     }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -111,7 +123,7 @@ int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subj
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
     hs_free_scratch(scratch);
     hs_free_database(database);

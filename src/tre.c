@@ -14,11 +14,17 @@ int tre_find_all(char* pattern, char* subject, int subject_len, int repeat, stru
 	TIME_TYPE start, end;
 	int found = 0;
 
+    double pre_times = 0;
+	GET_TIME(start);
+
 	err_val = tre_regcomp(&regex, pattern, REG_EXTENDED | REG_NEWLINE);
 	if (err_val != 0) {
 		printf("TRE compilation failed with error %d\n", err_val);
 		return -1;
 	}
+
+	GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
 
     double * times = calloc(repeat, sizeof(double));
     int const times_len = repeat;
@@ -44,7 +50,7 @@ int tre_find_all(char* pattern, char* subject, int subject_len, int repeat, stru
 	} while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(pre_times, times, times_len, res);
 
 	tre_regfree(&regex);
     free(times);
