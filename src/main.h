@@ -11,6 +11,8 @@ extern "C" {
 #define GET_TIME(res)               { res = clock(); }
 #define TIME_DIFF_IN_MS(begin, end) (((double) (end - start)) * 1000 / CLOCKS_PER_SEC)
 #define UNUSED __attribute__((unused))
+#define MAX_RULES 20
+#define MAX_REGEX_LEN 50
 
 struct result {
     int score;

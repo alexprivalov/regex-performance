@@ -4,8 +4,6 @@
 
 #include <hs/hs.h>
 
-#define MAX_RULES 100
-
 static int found = 0;
 
 static int eventHandler(UNUSED unsigned int  id,
