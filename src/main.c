@@ -352,30 +352,38 @@ int main(int argc, char **argv)
             }
 
             /* write table header*/
+            fprintf(f, "id;");
             fprintf(f, "regex;");
             for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-                fprintf(f, "%s [ms];", engines[iter].name);
+                fprintf(f, "%s (pre) [ms];", engines[iter].name);
             }
             for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
-                fprintf(f, "%s [sp];", engines[iter].name);
+                fprintf(f, "%s (match) [ms];", engines[iter].name);
             }
             for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
                 fprintf(f, "%s [matches];", engines[iter].name);
+            }
+            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+                fprintf(f, "%s [sp];", engines[iter].name);
             }
             fprintf(f, "\n");
 
             /* write data */
             for (iter = 0; iter < regex_num; iter++) {
+                fprintf(f, "%d;", iter + 1);
                 fprintf(f, "%s;", regex[iter]);
 
+                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                    fprintf(f, "%7.4f;", results[iter][iiter].pre_time);
+                }
                 for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                     fprintf(f, "%7.1f;", results[iter][iiter].time);
                 }
                 for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-                    fprintf(f, "%d;", results[iter][iiter].score);
+                    fprintf(f, "%d;", results[iter][iiter].matches);
                 }
                 for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
-                    fprintf(f, "%d;", results[iter][iiter].matches);
+                    fprintf(f, "%d;", results[iter][iiter].score);
                 }
                 fprintf(f, "\n");
             }
