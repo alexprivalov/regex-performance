@@ -288,7 +288,10 @@ int main(int argc, char **argv)
 
     } else {
         printf("\n[Match regex patterns all together]\n\n");
-        hs_multi_find_all(regex, sizeof(regex)/sizeof(regex[0]), data, data_len, 1);
+        struct result *results;
+        results = (struct result*)malloc(sizeof(struct result));
+        hs_multi_find_all(regex, sizeof(regex)/sizeof(regex[0]), data, data_len, repeat, results);
+        printResult("hyperscan", results);
     }
 
     free(data);

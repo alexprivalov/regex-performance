@@ -65,7 +65,7 @@ int hs_find_all(char * pattern, char * subject, int subject_len, int repeat, str
     return 0;
 }
 
-int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subject_len, int repeat)
+int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subject_len, int repeat, struct result * res)
 {
     TIME_TYPE start, end;
 
@@ -93,7 +93,7 @@ int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subj
     }
 
     double * times = calloc(repeat, sizeof(double));
-    // int const times_len = repeat;
+    int const times_len = repeat;
 
     do {
         found = 0;
@@ -110,8 +110,8 @@ int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subj
         times[repeat - 1] = TIME_DIFF_IN_MS(start, end);
     } while (--repeat > 0);
 
-    // res->matches = found;
-    // get_mean_and_derivation(times, times_len, res);
+    res->matches = found;
+    get_mean_and_derivation(times, times_len, res);
 
     hs_free_scratch(scratch);
     hs_free_database(database);
