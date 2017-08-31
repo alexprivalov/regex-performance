@@ -23,12 +23,12 @@ static struct engines engines [] = {
 #ifdef INCLUDE_RE2
     {.name = "re2",         .find_all = re2_find_all},
 #endif
-#ifdef INCLUDE_ONIGURUMA
-    {.name = "onig",        .find_all = onig_find_all},
-#endif
-#ifdef INCLUDE_TRE
-    {.name = "tre",         .find_all = tre_find_all},
-#endif
+// #ifdef INCLUDE_ONIGURUMA
+//     {.name = "onig",        .find_all = onig_find_all},
+// #endif
+// #ifdef INCLUDE_TRE
+//     {.name = "tre",         .find_all = tre_find_all},
+// #endif
 #ifdef INCLUDE_HYPERSCAN
     {.name = "hscan",       .find_all = hs_find_all},
 #endif
