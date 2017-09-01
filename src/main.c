@@ -395,11 +395,12 @@ int main(int argc, char **argv)
         printf("\n[Match regex patterns all together]\n\n");
         struct result *results;
         results = (struct result*)malloc(sizeof(struct result));
-        hs_multi_find_all(regex, regex_num, data, data_len, repeat, results);
+        if (hs_multi_find_all(regex, regex_num, data, data_len, repeat, results) == -1) {
+            exit(EXIT_FAILURE);
+        }
         printResult("hscan-multi", results);
 
         if (out_file != NULL) {
-            int iter;
 
             FILE * f;
             f = fopen(out_file, "w");
@@ -417,15 +418,11 @@ int main(int argc, char **argv)
             fprintf(f, "\n");
 
             /* write data */
-            for (iter = 0; iter < regex_num; iter++) {
-                fprintf(f, "%d;", iter + 1);
-                fprintf(f, "%s;", regex[iter]);
-
-                fprintf(f, "%7.4f;", results->pre_time);
-                fprintf(f, "%7.1f;", results->time);
-                fprintf(f, "%d;", results->matches);
-                fprintf(f, "\n");
-            }
+            fprintf(f, "%d;", regex_num);
+            fprintf(f, "%7.4f;", results->pre_time);
+            fprintf(f, "%7.1f;", results->time);
+            fprintf(f, "%d;", results->matches);
+            fprintf(f, "\n");
 
             fclose(f);
         }
