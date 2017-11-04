@@ -53,6 +53,7 @@ Other necessary packages:
 sudo apt-get install cmake
 sudo apt-get install libboost-all-dev
 sudo apt-get install ragel
+sudo apt-get install autoconf automake libtool autopoint
 ```
 
 ## Building the tool
