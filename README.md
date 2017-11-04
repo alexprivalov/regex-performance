@@ -23,11 +23,6 @@ and the sljit project (See their regex comparison [here](http://sljit.sourceforg
 
 (*) Tested with named version only. Older versions may work too.
 
-install Rust
-```
-curl https://sh.rustup.rs -sSf | sh
-```
-
 
 ## Supported engines
 The following regex engines are supported and covered by the tool:
@@ -46,6 +41,19 @@ The same variable can be set to `disabled` to exclude an engine.
 The configuration script distinguishes between nightly and other Rust toolchains to enable the SIMD-feature
 which is currently available in the nightly built only. The SIMD-feature improves the throughput of the
 regex crate for defined expressions.
+
+## Necessary packages
+Install Rust:
+```bash
+curl https://sh.rustup.rs -sSf | sh
+```
+
+Other necessary packages:
+```bash
+sudo apt-get install cmake
+sudo apt-get install libboost-all-dev
+sudo apt-get install ragel
+```
 
 ## Building the tool
 The different engines have different requirements which are not described here.
