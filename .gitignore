@@ -44,6 +44,6 @@ src/rust/.cargo/config
 src/version.h
 
 # Sub projects
-vendor/pcre2/*
+vendor/*
 
 
