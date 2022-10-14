@@ -72,46 +72,8 @@ function(AddExternalProject NAME LIB_NAME URL TAG)
 endfunction()
 
 
-# building a minimal boost with just boost::regex
-ExternalProject_Add(
-    libboost
-    GIT_REPOSITORY "https://github.com/boostorg/boost.git"
-    GIT_TAG master
-    GIT_SUBMODULES 
-        tools/build                                                                              
-        tools/boost_install
-        libs/regex 
-        libs/config 
-        libs/headers
-        libs/throw_exception
-        libs/exception
-        libs/assert
-    GIT_SHALLOW ON
-    GIT_SUBMODULES_RECURSE OFF
-    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/boost
-    TMP_DIR ${PROJECT_BINARY_DIR}/boost-tmp
-    STAMP_DIR ${PROJECT_BINARY_DIR}/boost-stamp
-    BINARY_DIR ${PROJECT_BINARY_DIR}/boost-build
-    DOWNLOAD_DIR ${PROJECT_BINARY_DIR}/boost-down
-    CONFIGURE_COMMAND 
-        cd ${CMAKE_CURRENT_SOURCE_DIR}/boost &&
-        ./bootstrap.sh 
-    BUILD_COMMAND 
-        cd ${CMAKE_CURRENT_SOURCE_DIR}/boost &&
-        ./b2 headers &&
-        ./b2 install -q -a
-        --prefix=${CMAKE_CURRENT_SOURCE_DIR}/local 
-        --build-type=minimal  
-        --layout=system 
-        --disable-icu
-        --with-regex 
-        variant=release link=static runtime-link=static 
-        threading=single address-model=64 architecture=x86 
-    INSTALL_COMMAND ""
-)
-
-set(INCLUDE_BOOST "local" CACHE STRING "Use boost::regex library form local built, system or disable usage.")
+# boost - I'm not going to build boost here
+set(INCLUDE_BOOST "system" CACHE STRING "Use boost::regex library form local built, system or disable usage.")
 set_property(CACHE INCLUDE_BOOST PROPERTY STRINGS "local" "system" "disabled")
 message("-- Include boost: ${INCLUDE_BOOST}")
 
