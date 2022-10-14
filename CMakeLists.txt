@@ -19,11 +19,11 @@ set(GENERAL_C_FLAGS "-march=native -Wall -Wstack-usage=5000 -fdiagnostics-color 
 
 set(CMAKE_C_FLAGS "-std=c11 ${GENERAL_C_FLAGS}" CACHE STRING "additional CFLAGS" FORCE)
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${GENERAL_C_FLAGS}" CACHE STRING "additional CFLAGS" FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native")
 
 ## BUILD TYPE
 if(NOT CMAKE_BUILD_TYPE)

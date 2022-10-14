@@ -72,13 +72,13 @@ function(AddExternalProject NAME LIB_NAME URL TAG)
 endfunction()
 
 # hyperscan
-AddExternalProject(
-    "hyperscan"
-    "hs"
-    "https://github.com/01org/hyperscan.git"
-    "master"
-    -DCMAKE_BUILD_TYPE=Release -DFAT_RUNTIME=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
-)
+#AddExternalProject(
+#    "hyperscan"
+#    "hs"
+#    "https://github.com/01org/hyperscan.git"
+#    "master"
+#   -DCMAKE_BUILD_TYPE=Release -DFAT_RUNTIME=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
+#)
 
 # oniguruma
 AddExternalProject(

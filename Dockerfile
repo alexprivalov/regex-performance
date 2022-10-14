@@ -1,4 +1,9 @@
-FROM debian:9
+FROM debian:11
+
+ENV CXX_FLAGS="-O3 -march=native"
+ENV CXXFLAGS="-O3 -march=native"
+ENV CFLAGS="-O3 -march=native"
+ENV C_FLAGS="-O3 -march=native"
 
 # Install basic dependencies
 RUN apt-get update -y && apt-get install -y \
@@ -6,7 +11,7 @@ RUN apt-get update -y && apt-get install -y \
       cmake ragel python3 \
       libboost-dev libpcap-dev \
       autoconf automake autopoint \
-      gettext libtool git
+      gettext libtool git libboost-regex-dev libboost-regex1.74.0 libhyperscan5 libhyperscan-dev
 
 # Install rustc
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
