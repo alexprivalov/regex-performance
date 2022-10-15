@@ -73,7 +73,7 @@ extern "C" int ctre_find_all(char *pattern, char *subject, int subject_len, int 
     }
     else
     {
-        res->time = 999999;
+        res->time = 1000000;
         res->time_sd = 0;
         res->matches = 0;
     }

@@ -40,7 +40,7 @@ extern "C" int cppstd_find_all(char* pattern, char* subject, int subject_len, in
         free(times);
     } catch ( std::exception& ex ) {
         std::cerr << "Exception thrown compiling regex [" << pattern << "]:" << ex.what() << std::endl;
-        res->time = 999999;
+        res->time = 1000000;
         res->time_sd = 0;
         res->matches = 0;
     }

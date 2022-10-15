@@ -77,7 +77,7 @@ int yara_find_all(char* pattern, char* subject, int subject_len, int repeat, str
 
   if (strlen(rule_file) == 0)
   {
-    res->time = 999999;
+    res->time = 1000000;
     res->time_sd = 0;
     res->matches = 0;
   }
