@@ -68,7 +68,7 @@ int regress_find_all(char *pattern, char *subject, int subject_len, int repeat, 
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(times, times_len, res);
+    get_mean_and_derivation(0, times, times_len, res);
 
     regress_free(regex_hdl);
     free(times);

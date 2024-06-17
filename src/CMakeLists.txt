@@ -8,17 +8,17 @@ set(REGEX_SOURCES
     rust.c
 )
 
-if(NOT ${INCLUDE_PCRE2} MATCHES "disabled")
+# if(NOT ${INCLUDE_PCRE2} MATCHES "disabled")
     add_definitions(-DINCLUDE_PCRE2)
     set(REGEX_SOURCES ${REGEX_SOURCES} pcre2.c)
     set(REGEX_ENGINES ${REGEX_ENGINES} pcre2-8)
-endif()
+# endif()
 
-if(NOT ${INCLUDE_HYPERSCAN} MATCHES "disabled")
+# if(NOT ${INCLUDE_HYPERSCAN} MATCHES "disabled")
     add_definitions(-DINCLUDE_HYPERSCAN)
     set(REGEX_SOURCES ${REGEX_SOURCES} hyperscan.c)
     set(REGEX_ENGINES ${REGEX_ENGINES} hs)
-endif()
+# endif()
 
 if(NOT ${INCLUDE_ONIGURUMA} MATCHES "disabled")
     add_definitions(-DINCLUDE_ONIGURUMA)
@@ -78,4 +78,6 @@ add_executable(regex_perf ${REGEX_SOURCES})
 
 add_dependencies(regex_perf librregex)
 
-target_link_libraries(regex_perf rregex ${REGEX_ENGINES} pthread dl)
+message(STATUS "REGEX_ENGINES: ${REGEX_ENGINES}")
+
+target_link_libraries(regex_perf rregex ${REGEX_ENGINES} pthread dl m)
