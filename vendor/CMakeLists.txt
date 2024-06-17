@@ -6,7 +6,7 @@ include(ExternalProject)
 # @param[in]    URL         Used URL to download the sources. Git repositories have to contain `.git` for identification.
 # @param[in]    ARGN        All preceeding arguments are forwareded to `CMAKE_ARGS`, if external project uses cmake
 #                           for configuration, or `CONFIGURE_COMMAND`.
-function(AddExternalProject NAME LIB_NAME URL)
+function(AddExternalProject NAME LIB_NAME URL TAG)
     string(TOUPPER ${NAME} UP_NAME)
 
     set(INCLUDE_${UP_NAME} "local" CACHE STRING "Use ${NAME} library form local built, system or disable usage.")
@@ -24,6 +24,7 @@ function(AddExternalProject NAME LIB_NAME URL)
                 ExternalProject_Add(
                     lib${NAME}
                     GIT_REPOSITORY ${URL}
+                    GIT_TAG ${TAG}
                     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}
                     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${NAME}
                     TMP_DIR ${PROJECT_BINARY_DIR}/${NAME}-tmp
@@ -70,20 +71,30 @@ function(AddExternalProject NAME LIB_NAME URL)
     endif()
 endfunction()
 
+
+# boost - I'm not going to build boost here
+set(INCLUDE_BOOST "system" CACHE STRING "Use boost::regex library form local built, system or disable usage.")
+set_property(CACHE INCLUDE_BOOST PROPERTY STRINGS "local" "system" "disabled")
+message("-- Include boost: ${INCLUDE_BOOST}")
+
 # hyperscan
-AddExternalProject(
-    "hyperscan"
-    "hs"
-    "https://github.com/01org/hyperscan.git"
-    -DCMAKE_BUILD_TYPE=Release -DFAT_RUNTIME=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
-)
+#AddExternalProject(
+#    "hyperscan"
+#    "hs"
+#   "https://github.com/01org/hyperscan.git"
+#    "master"
+#    -DCMAKE_BUILD_TYPE=Release -DFAT_RUNTIME=OFF 
+#    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
+#)
 
 # oniguruma
 AddExternalProject(
     "oniguruma"
     "onig"
     "https://github.com/kkos/oniguruma.git"
-    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
+    "master"
+    -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=OFF -DINSTALL_DOCUMENTATION=OFF 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
 )
 
 # re2
@@ -91,7 +102,9 @@ AddExternalProject(
     "re2"
     "re2"
     "https://github.com/google/re2.git"
-    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
+    "main"
+    -DCMAKE_BUILD_TYPE=Release 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
 )
 
 # tre
@@ -99,13 +112,53 @@ AddExternalProject(
     "tre"
     "tre"
     "https://github.com/laurikari/tre.git"
-    cd ${CMAKE_CURRENT_SOURCE_DIR}/tre/ && ./utils/autogen.sh && cd ${PROJECT_BINARY_DIR}/tre-build && ${CMAKE_CURRENT_SOURCE_DIR}/tre/configure --prefix=${CMAKE_CURRENT_SOURCE_DIR}/local
+    "master"
+    cd ${CMAKE_CURRENT_SOURCE_DIR}/tre/ && 
+    ./utils/autogen.sh && cd ${PROJECT_BINARY_DIR}/tre-build && 
+    ${CMAKE_CURRENT_SOURCE_DIR}/tre/configure 
+        --prefix=${CMAKE_CURRENT_SOURCE_DIR}/local
 )
 
 # pcre2
 AddExternalProject(
     "pcre2"
     "pcre2-8"
-    "https://ftp.pcre.org/pub/pcre/pcre2-10.23.tar.gz"
-    ${CMAKE_CURRENT_SOURCE_DIR}/pcre2/configure --prefix=${CMAKE_CURRENT_SOURCE_DIR}/local --enable-unicode --enable-jit
+    "https://github.com/PhilipHazel/pcre2.git"
+    "master"
+    -DCMAKE_BUILD_TYPE=Release 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local 
+    -DPCRE2_SUPPORT_JIT=ON
 )
+
+# c++ standard
+set(INCLUDE_CPPSTD "system" CACHE STRING "Use cppstd library form local built, system or disable usage.")
+set_property(CACHE INCLUDE_CPPSTD PROPERTY STRINGS "local" "system" "disabled")
+message("-- Include cppstd: ${INCLUDE_CPPSTD}")
+
+# ctre
+#
+AddExternalProject(
+    "ctre"
+    "ctre"
+    "https://github.com/hanickadot/compile-time-regular-expressions.git"
+    "main"
+    -DCMAKE_BUILD_TYPE=Release 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/local
+)
+
+# yara
+AddExternalProject(
+    "yara"
+    "yara"
+    "https://github.com/VirusTotal/yara.git"
+    "master"
+    cd ${CMAKE_CURRENT_SOURCE_DIR}/yara/ && 
+    ./bootstrap.sh && 
+    cd ${PROJECT_BINARY_DIR}/yara-build && 
+    ${CMAKE_CURRENT_SOURCE_DIR}/yara/configure 
+         --prefix=${CMAKE_CURRENT_SOURCE_DIR}/local
+
+)
+
+
+

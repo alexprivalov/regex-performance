@@ -7,17 +7,23 @@ cmake_minimum_required(VERSION 3.0)
 
 project(RegexPeformance C CXX)
 
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(GENERAL_C_FLAGS "-march=native -Wall -Wstack-usage=500000 -Werror -fdiagnostics-color -pipe -fsigned-char -fno-asynchronous-unwind-tables -fno-stack-protector -Wunused-parameter")
 
 set(CMAKE_C_FLAGS "-std=c11 ${GENERAL_C_FLAGS}" CACHE STRING "additional CFLAGS" FORCE)
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${GENERAL_C_FLAGS}" CACHE STRING "additional CFLAGS" FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native")
 
 ## BUILD TYPE
 if(NOT CMAKE_BUILD_TYPE)

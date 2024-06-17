@@ -32,10 +32,33 @@ if(NOT ${INCLUDE_TRE} MATCHES "disabled")
     set(REGEX_ENGINES ${REGEX_ENGINES} tre)
 endif()
 
+if(NOT ${INCLUDE_CTRE} MATCHES "disabled")
+    add_definitions(-DINCLUDE_CTRE)
+    set(REGEX_SOURCES ${REGEX_SOURCES} ctre.cpp)
+    #set(REGEX_ENGINES ${REGEX_ENGINES} ctre)
+endif()
+
 if(NOT ${INCLUDE_RE2} MATCHES "disabled")
     add_definitions(-DINCLUDE_RE2)
     set(REGEX_SOURCES ${REGEX_SOURCES} re2.cpp)
     set(REGEX_ENGINES ${REGEX_ENGINES} re2)
+endif()
+
+if(NOT ${INCLUDE_CPPSTD} MATCHES "disabled")
+    add_definitions(-DINCLUDE_CPPSTD)
+    set(REGEX_SOURCES ${REGEX_SOURCES} cppstd.cpp)
+endif()
+
+if(NOT ${INCLUDE_BOOST} MATCHES "disabled")
+    add_definitions(-DINCLUDE_BOOST)
+    set(REGEX_SOURCES ${REGEX_SOURCES} boost.cpp)
+    set(REGEX_ENGINES ${REGEX_ENGINES} boost_regex)
+endif()
+
+if(NOT ${INCLUDE_YARA} MATCHES "disabled")
+    add_definitions(-DINCLUDE_YARA)
+    set(REGEX_SOURCES ${REGEX_SOURCES} yara.c)
+    set(REGEX_ENGINES ${REGEX_ENGINES} yara)
 endif()
 
 include_directories(
