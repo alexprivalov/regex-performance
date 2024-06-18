@@ -23,7 +23,7 @@ struct result {
 };
 
 void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res);
-void printResult(char * name, struct result * res);
+void printResult(const char * name, struct result * res);
 
 #ifdef INCLUDE_CTRE
 int ctre_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);

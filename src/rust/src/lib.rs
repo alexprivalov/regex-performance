@@ -34,7 +34,7 @@ pub extern fn regex_matches(raw_exp: *mut Regex, p: *const u8, len: u64) -> u64 
 
 #[no_mangle]
 pub extern fn regex_free(raw_exp: *mut Regex) {
-    unsafe { Box::from_raw(raw_exp) };
+    unsafe { let _ = Box::from_raw(raw_exp); };
 }
 
 #[no_mangle]
@@ -71,5 +71,5 @@ pub extern fn regress_matches(raw_exp: *mut Regress, p: *const u8, len: u64) -> 
 
 #[no_mangle]
 pub extern fn regress_free(raw_exp: *mut Regress) {
-    unsafe { Box::from_raw(raw_exp) };
+    unsafe { let _ = Box::from_raw(raw_exp); };
 }

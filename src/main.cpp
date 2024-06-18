@@ -10,10 +10,10 @@ static char* data = NULL;
 static int data_len = 0;
 
 static char ** regex = NULL;
-static int regex_num = 0;
+static size_t regex_num = 0;
 
 struct engines {
-    char * name;
+    const char * name;
     int (*find_all)(char* pattern, char* subject, int subject_len, int repeat, struct result * result);
 };
 
@@ -127,7 +127,7 @@ void read_regex(char const * file_name)
     }
 
 	rewind(f);
-    char *re = malloc( MAX_REGEX_LEN * sizeof( char ) );
+    char *re = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
     if (!re) {
         fprintf(stderr, "Cannot allocate memory!\n");
         fclose(f);
@@ -135,7 +135,7 @@ void read_regex(char const * file_name)
     }
 
 	int i = 0, j = 0;
-	unsigned int c = fgetc(f);
+	auto c = fgetc(f);
 
 	//parsing the RegEx
 	while(c != EOF){
@@ -144,14 +144,14 @@ void read_regex(char const * file_name)
 				re[i] = '\0';
 				if (re[0] != '#'){
                     // parse_re(nfa, re);
-                    regex[j] = malloc( MAX_REGEX_LEN * sizeof( char ) );
+                    regex[j] = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
                     strcpy(regex[j], re);
                     j++;
                     fprintf(stdout, "[%4d]\t%s\n", j, re);
 				} 
 				i = 0;
 				free(re);
-                re = malloc( MAX_REGEX_LEN * sizeof( char ) );
+                re = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
                 if (!re) {
                     fprintf(stderr, "Cannot allocate memory!\n");
                     fclose(f);
@@ -168,7 +168,7 @@ void read_regex(char const * file_name)
 		re[i] = '\0';
 		if (re[0] != '#'){
             // parse_re(nfa,re);
-            regex[j] = malloc( MAX_REGEX_LEN * sizeof( char ) );
+            regex[j] = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
             strcpy(regex[j], re);
             fprintf(stdout, "[%4d]\t%s\n", ++j, re);
 		}
@@ -176,7 +176,7 @@ void read_regex(char const * file_name)
     }
     
     regex_num = j;
-    fprintf(stdout, "Regex ruleset '%s' loaded. (Total: %d regexes)\n", file_name, regex_num);
+    fprintf(stdout, "Regex ruleset '%s' loaded. (Total: %lu regexes)\n", file_name, regex_num);
 	// if (re!=NULL) free(re);
     fclose(f);
 
@@ -184,11 +184,9 @@ void read_regex(char const * file_name)
 
 void find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * engine_results)
 {
-    int iter;
-
     fprintf(stdout, "-----------------\nRegex: '%s'\n", pattern);
 
-    for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+    for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
         int ret = engines[iter].find_all(pattern, subject, subject_len, repeat, &(engine_results[iter]));
         if (ret == -1) {
             engine_results[iter].pre_time = 0;
@@ -205,7 +203,7 @@ void find_all(char* pattern, char* subject, int subject_len, int repeat, struct 
     for (int top = 0; top < score_points; top++) {
         double best = 0;
 
-        for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+        for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
             if (engine_results[iter].time > 0 &&
                 engine_results[iter].score == 0 &&
                 (best == 0 || best > engine_results[iter].time)) {
@@ -213,7 +211,7 @@ void find_all(char* pattern, char* subject, int subject_len, int repeat, struct 
             }
         }
 
-        for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+        for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
             if (engine_results[iter].time > 0 && best == engine_results[iter].time) {
                 engine_results[iter].score = score_points;
             }
@@ -227,7 +225,6 @@ void find_all(char* pattern, char* subject, int subject_len, int repeat, struct 
 void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res)
 {
     double mean, sd, var, sum = 0.0, sdev = 0.0;
-    int32_t iter;
 
     if (times == NULL || res == NULL || times_len == 0) {
         return;
@@ -241,13 +238,13 @@ void get_mean_and_derivation(double pre_times, double * times, uint32_t times_le
     }
 
     /* get mean value */
-    for (iter = 0; iter < times_len; iter++) {
+    for (uint32_t iter = 0; iter < times_len; iter++) {
         sum += times[iter];
     }
     mean = sum / times_len;
 
     /* get variance */
-    for (iter = 0; iter < times_len; iter++) {
+    for (uint32_t iter = 0; iter < times_len; iter++) {
         sdev += (times[iter] - mean) * (times[iter] - mean);
     }
     var = sdev / (times_len - 1);
@@ -259,7 +256,7 @@ void get_mean_and_derivation(double pre_times, double * times, uint32_t times_le
     res->time_sd = sd;
 }
 
-void printResult(char * name, struct result * res)
+void printResult(const char * name, struct result * res)
 {
     fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name, res->pre_time, res->time, (res->time_sd / res->time) * 100, res->matches);
     fflush(stdout);
@@ -339,10 +336,10 @@ int main(int argc, char **argv)
         struct result results[MAX_RULES][sizeof(engines)/sizeof(engines[0])] = {0};
         struct result engine_results[sizeof(engines)/sizeof(engines[0])] = {0};
 
-        for (int iter = 0; iter < regex_num; iter++) {
+        for (size_t  iter = 0; iter < regex_num; iter++) {
             find_all(regex[iter], data, data_len, repeat, results[iter]);
 
-            for (int iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+            for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                 engine_results[iiter].pre_time += results[iter][iiter].pre_time;
                 engine_results[iiter].time += results[iter][iiter].time;
                 engine_results[iiter].matches += results[iter][iiter].matches;
@@ -351,12 +348,12 @@ int main(int argc, char **argv)
         }
 
         fprintf(stdout, "-----------------\nTotal Results:\n");
-        for (int iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+        for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
             fprintf(stdout, "[%10s] pre time: %7.4f ms | match time: %7.1f ms | matches: %8d | score: %6u points |\n", engines[iter].name, engine_results[iter].pre_time, engine_results[iter].time, engine_results[iter].matches, engine_results[iter].score);
         }
 
         if (out_file != NULL) {
-            int iter, iiter;
+            // int iter, iiter;
 
             FILE * f;
             f = fopen(out_file, "w");
@@ -368,35 +365,35 @@ int main(int argc, char **argv)
             /* write table header*/
             fprintf(f, "id;");
             fprintf(f, "regex;");
-            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+            for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
                 fprintf(f, "%s (pre) [ms];", engines[iter].name);
             }
-            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+            for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
                 fprintf(f, "%s (match) [ms];", engines[iter].name);
             }
-            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+            for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
                 fprintf(f, "%s [matches];", engines[iter].name);
             }
-            for (iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
+            for (size_t iter = 0; iter < sizeof(engines)/sizeof(engines[0]); iter++) {
                 fprintf(f, "%s [sp];", engines[iter].name);
             }
             fprintf(f, "\n");
 
             /* write data */
-            for (iter = 0; iter < regex_num; iter++) {
-                fprintf(f, "%d;", iter + 1);
+            for (size_t iter = 0; iter < regex_num; iter++) {
+                fprintf(f, "%lu;", iter + 1);
                 fprintf(f, "%s;", regex[iter]);
 
-                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                     fprintf(f, "%7.4f;", results[iter][iiter].pre_time);
                 }
-                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                     fprintf(f, "%7.1f;", results[iter][iiter].time);
                 }
-                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                     fprintf(f, "%d;", results[iter][iiter].matches);
                 }
-                for (iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
+                for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                     fprintf(f, "%d;", results[iter][iiter].score);
                 }
                 fprintf(f, "\n");
@@ -432,7 +429,7 @@ int main(int argc, char **argv)
             fprintf(f, "\n");
 
             /* write data */
-            fprintf(f, "%d;", regex_num);
+            fprintf(f, "%lu;", regex_num);
             fprintf(f, "%7.4f;", results->pre_time);
             fprintf(f, "%7.1f;", results->time);
             fprintf(f, "%d;", results->matches);
