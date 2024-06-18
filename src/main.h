@@ -26,37 +26,37 @@ void get_mean_and_derivation(double pre_times, double * times, uint32_t times_le
 void printResult(const char * name, struct result * res);
 
 #ifdef INCLUDE_CTRE
-int ctre_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int ctre_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_BOOST
-int boost_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int boost_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_CPPSTD
-int cppstd_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int cppstd_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_PCRE2
-int pcre2_std_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
-int pcre2_dfa_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
-int pcre2_jit_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int pcre2_std_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
+int pcre2_dfa_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
+int pcre2_jit_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_RE2
-int re2_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int re2_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_TRE
-int tre_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int tre_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_ONIGURUMA
-int onig_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res);
+int onig_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_HYPERSCAN
-int hs_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res);
-int hs_multi_find_all(char ** pattern, int pattern_num, char * subject, int subject_len, int repeat, struct result * res);
+int hs_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
+int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_YARA
 int yara_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res);
 #endif
-int rust_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res);
-int regress_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res);
+int rust_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
+int regress_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 
 #ifdef __cplusplus
 }

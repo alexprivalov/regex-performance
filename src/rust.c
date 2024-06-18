@@ -4,7 +4,7 @@
 
 #include <rregex.h>
 
-int rust_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res)
+int rust_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res)
 {
     TIME_TYPE start, end;
     int found = 0;
@@ -42,7 +42,7 @@ int rust_find_all(char * pattern, char * subject, int subject_len, int repeat, s
     return 0;
 }
 
-int regress_find_all(char *pattern, char *subject, int subject_len, int repeat, struct result *res)
+int regress_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result *res)
 {
     TIME_TYPE start, end;
     int found = 0;

@@ -6,15 +6,13 @@
 #include "main.h"
 #include "version.h"
 
-static char* data = NULL;
-static int data_len = 0;
-
-static char ** regex = NULL;
-static size_t regex_num = 0;
+#include <vector>
+#include <string>
+#include <fstream>
 
 struct engines {
     const char * name;
-    int (*find_all)(char* pattern, char* subject, int subject_len, int repeat, struct result * result);
+    int (*find_all)(const char* pattern, const char* subject, int subject_len, int repeat, struct result * result);
 };
 
 static struct engines engines [] = {
@@ -72,117 +70,51 @@ static struct engines engines [] = {
 //     "(.*?,){13}z"
 // };
 
-void load(char const * file_name)
+std::string load(const char * file_name)
 {
-    int i;
+    std::string ret;
 
-    FILE * f;
-    f = fopen(file_name, "rb");
-    if (!f) {
-        fprintf(stderr, "Cannot open '%s'!\n", file_name);
-        return;
-    }
-
-    fseek(f, 0, SEEK_END);
-    data_len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    data = (char*)malloc(data_len + 1);
-    if (!data) {
-        fprintf(stderr, "Cannot allocate memory!\n");
-        fclose(f);
-        return;
-    }
-    data[data_len] = '\0';
-
-    int size = fread(data, data_len, 1, f);
-    if (size == 0) {
-        fprintf(stderr, "Reading file failed!\n");
-    }
-    fclose(f);
-
-    for (i = 0; i < data_len; ++i) {
-        if (data[i] == '\r') {
-            data[i] = '\n';
+    do {
+        std::ifstream file(file_name);
+        if (!file.is_open()) {
+            fprintf(stderr, "Cannot open '%s'!\n", file_name);
+            break;
         }
-    }
-    fprintf(stdout, "Input data '%s' loaded. (Length: %d bytes)\n", file_name, data_len);
+
+        while (!file.eof()) {
+            std::string line;
+            std::getline(file, line);
+            ret.append(line);
+        }
+    } while (false);
+
+    return ret;
 }
 
-
-void read_regex(char const * file_name)
+std::vector<std::string> loadRegex(char const * file_name)
 {
-    FILE * f;
-    f = fopen(file_name, "rb");
-    if (!f) {
-        fprintf(stderr, "Cannot open '%s'!\n", file_name);
-        return;
-    }
-    
-    regex = (char**)malloc(sizeof(char*) * MAX_RULES);
-    if (!regex) {
-        fprintf(stderr, "Cannot allocate memory!\n");
-        fclose(f);
-        return;
-    }
+    std::vector<std::string> regexes;
 
-	rewind(f);
-    char *re = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
-    if (!re) {
-        fprintf(stderr, "Cannot allocate memory!\n");
-        fclose(f);
-        return;
-    }
+    do {
+        std::ifstream file(file_name);
+        if (!file.is_open()) {
+            fprintf(stderr, "Cannot open '%s'!\n", file_name);
+            break;
+        }
 
-	int i = 0, j = 0;
-	auto c = fgetc(f);
+        while (!file.eof()) {
+            std::string line;
+            std::getline(file, line);
+            if (!line.empty() && line[0] != '#') {
+                regexes.push_back(line);
+            }
+        }
+    } while (false);
 
-	//parsing the RegEx
-	while(c != EOF){
-		if (c == '\n' || c =='\r'){
-			if(i != 0){
-				re[i] = '\0';
-				if (re[0] != '#'){
-                    // parse_re(nfa, re);
-                    regex[j] = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
-                    strcpy(regex[j], re);
-                    j++;
-                    fprintf(stdout, "[%4d]\t%s\n", j, re);
-				} 
-				i = 0;
-				free(re);
-                re = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
-                if (!re) {
-                    fprintf(stderr, "Cannot allocate memory!\n");
-                    fclose(f);
-                    return;
-                }
-			}
-		}else{
-			re[i++] = c;
-		}	
-		c=fgetc(f);
-	} //end while
-	
-	if(i != 0){
-		re[i] = '\0';
-		if (re[0] != '#'){
-            // parse_re(nfa,re);
-            regex[j] = (char*)malloc( MAX_REGEX_LEN * sizeof( char ) );
-            strcpy(regex[j], re);
-            fprintf(stdout, "[%4d]\t%s\n", ++j, re);
-		}
-		free(re);
-    }
-    
-    regex_num = j;
-    fprintf(stdout, "Regex ruleset '%s' loaded. (Total: %lu regexes)\n", file_name, regex_num);
-	// if (re!=NULL) free(re);
-    fclose(f);
-
+    return regexes;
 }
 
-void find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * engine_results)
+void find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * engine_results)
 {
     fprintf(stdout, "-----------------\nRegex: '%s'\n", pattern);
 
@@ -320,13 +252,17 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    read_regex(input_regex);
-    if (regex_num == 0) {
-        exit(EXIT_FAILURE);
+    auto regexes = loadRegex(input_regex);
+    std::vector<const char *> regex;
+    for (auto &regex_ : regexes) {
+        fprintf(stdout, "Regex: %s\n", regex_.c_str());
+        regex.push_back(regex_.c_str());
     }
 
-    load(file);
-    if (data_len == 0) {
+    fprintf(stdout, "Total amount of records: %ld\n", regexes.size());
+
+    auto data = load(file);
+    if (data.empty()) {
         exit(EXIT_FAILURE);
     }
 
@@ -336,8 +272,8 @@ int main(int argc, char **argv)
         struct result results[MAX_RULES][sizeof(engines)/sizeof(engines[0])] = {0};
         struct result engine_results[sizeof(engines)/sizeof(engines[0])] = {0};
 
-        for (size_t  iter = 0; iter < regex_num; iter++) {
-            find_all(regex[iter], data, data_len, repeat, results[iter]);
+        for (size_t  iter = 0; iter < regex.size(); iter++) {
+            find_all(regex[iter], data.c_str(), data.size(), repeat, results[iter]);
 
             for (size_t iiter = 0; iiter < sizeof(engines)/sizeof(engines[0]); iiter++) {
                 engine_results[iiter].pre_time += results[iter][iiter].pre_time;
@@ -353,8 +289,6 @@ int main(int argc, char **argv)
         }
 
         if (out_file != NULL) {
-            // int iter, iiter;
-
             FILE * f;
             f = fopen(out_file, "w");
             if (!f) {
@@ -380,7 +314,7 @@ int main(int argc, char **argv)
             fprintf(f, "\n");
 
             /* write data */
-            for (size_t iter = 0; iter < regex_num; iter++) {
+            for (size_t iter = 0; iter < regex.size(); iter++) {
                 fprintf(f, "%lu;", iter + 1);
                 fprintf(f, "%s;", regex[iter]);
 
@@ -406,7 +340,7 @@ int main(int argc, char **argv)
         printf("\n[Match regex patterns all together]\n\n");
         struct result *results;
         results = (struct result*)malloc(sizeof(struct result));
-        if (hs_multi_find_all(regex, regex_num, data, data_len, repeat, results) == -1) {
+        if (hs_multi_find_all(regex.data(), regex.size(), data.c_str(), data.size(), repeat, results) == -1) {
             exit(EXIT_FAILURE);
         }
         printResult("hscan-multi", results);
@@ -429,7 +363,7 @@ int main(int argc, char **argv)
             fprintf(f, "\n");
 
             /* write data */
-            fprintf(f, "%lu;", regex_num);
+            fprintf(f, "%lu;", regex.size());
             fprintf(f, "%7.4f;", results->pre_time);
             fprintf(f, "%7.1f;", results->time);
             fprintf(f, "%d;", results->matches);
@@ -438,9 +372,6 @@ int main(int argc, char **argv)
             fclose(f);
         }
     }
-
-    free(data);
-    free(regex);
 
     exit(EXIT_SUCCESS);
 }

@@ -7,7 +7,7 @@
 
 static int work_space[4096];
 
-int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, int mode, struct result * res)
+int pcre2_find_all(const char* pattern, const char* subject, int subject_len, int repeat, int mode, struct result * res)
 {
     pcre2_code *re;
     pcre2_compile_context *comp_ctx;
@@ -17,7 +17,7 @@ int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, in
     PCRE2_SIZE err_offset;
     pcre2_jit_stack *stack = NULL;
     PCRE2_SIZE *ovector;
-    char *ptr;
+    const char *ptr;
     int len;
     TIME_TYPE start = 0, end = 0;
     int found = 0;
@@ -190,17 +190,17 @@ int pcre2_find_all(char* pattern, char* subject, int subject_len, int repeat, in
     return 0;
 }
 
-int pcre2_std_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res)
+int pcre2_std_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res)
 {
     return pcre2_find_all(pattern, subject, subject_len, repeat, 0, res);
 }
 
-int pcre2_dfa_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res)
+int pcre2_dfa_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res)
 {
     return pcre2_find_all(pattern, subject, subject_len, repeat, 1, res);
 }
 
-int pcre2_jit_find_all(char* pattern, char* subject, int subject_len, int repeat, struct result * res)
+int pcre2_jit_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res)
 {
     return pcre2_find_all(pattern, subject, subject_len, repeat, 2, res);
 }
