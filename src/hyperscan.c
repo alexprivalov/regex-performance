@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "main.h"
-
 #include <hs/hs.h>
 
 static int found = 0;
@@ -13,6 +12,26 @@ static int eventHandler(UNUSED unsigned int  id,
                         UNUSED void * ctx) {
     found++;
     return 0;
+}
+
+bool hs_verify_regex(const char* pattern) {
+    hs_database_t * database;
+    hs_compile_error_t * compile_err;
+    if (hs_compile(pattern, 
+                    HS_FLAG_DOTALL | HS_FLAG_MULTILINE | HS_FLAG_SOM_LEFTMOST,
+                    // HS_FLAG_CASELESS, 
+                    HS_MODE_BLOCK, 
+                    NULL, 
+                    &database, 
+                    &compile_err) != HS_SUCCESS) {
+        // fprintf(stderr, "ERROR: Unable to compile pattern \"%s\": %s\n",
+        //         pattern, compile_err->message);
+        hs_free_compile_error(compile_err);
+        return false;
+    }
+
+    hs_free_database(database);
+    return true;
 }
 
 int hs_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res)
@@ -86,8 +105,15 @@ int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subje
     double pre_times = 0;
     GET_TIME(start);
 
-    if (hs_compile_multi((const char *const *)pattern, all_flags, all_rule_ids, pattern_num, HS_MODE_BLOCK, NULL, &database, &compile_err) != HS_SUCCESS) {
-        fprintf(stderr, "ERROR: Unable to compile patterns: %s\n", compile_err->message);
+    if (hs_compile_multi((const char *const *)pattern,
+                         all_flags,
+                         all_rule_ids, 
+                         pattern_num, 
+                         HS_MODE_BLOCK, 
+                         NULL, 
+                         &database, 
+                         &compile_err) != HS_SUCCESS) {
+        fprintf(stderr, "ERROR: Unable to compile patterns: '%s'\n", compile_err->message);
         hs_free_compile_error(compile_err);
         return -1;
     }

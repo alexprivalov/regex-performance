@@ -70,6 +70,13 @@ static struct engines engines [] = {
 //     "(.*?,){13}z"
 // };
 
+static void printResult(const char * name, const struct result& res)
+{
+    fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name
+                , res.pre_time, res.time, (res.time_sd / res.time) * 100, res.matches);
+    fflush(stdout);
+}
+
 std::string load(const char * file_name)
 {
     std::string ret;
@@ -127,7 +134,7 @@ void find_all(const char* pattern, const char* subject, int subject_len, int rep
             engine_results[iter].matches = 0;
             engine_results[iter].score = 0;
         } else {
-            printResult(engines[iter].name, &(engine_results[iter]));
+            printResult(engines[iter].name, engine_results[iter]);
         }
     }
 
@@ -186,12 +193,6 @@ void get_mean_and_derivation(double pre_times, double * times, uint32_t times_le
 
     res->time = mean;
     res->time_sd = sd;
-}
-
-void printResult(const char * name, struct result * res)
-{
-    fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name, res->pre_time, res->time, (res->time_sd / res->time) * 100, res->matches);
-    fflush(stdout);
 }
 
 int main(int argc, char **argv)
@@ -338,9 +339,20 @@ int main(int argc, char **argv)
 
     } else {
         printf("\n[Match regex patterns all together]\n\n");
-        struct result *results;
-        results = (struct result*)malloc(sizeof(struct result));
-        if (hs_multi_find_all(regex.data(), regex.size(), data.c_str(), data.size(), repeat, results) == -1) {
+        struct result results = {};
+
+        std::vector<const char *> filtered_regex;
+        for (auto &regex_ : regexes) {
+            if (hs_verify_regex(regex_.c_str())) {
+                filtered_regex.push_back(regex_.c_str());
+            } /*else {
+                fprintf(stderr, "Hyperscan, Invalid regex: %s\n", regex_.c_str());
+            }*/
+        }
+
+        fprintf(stdout, "Total amount of valid for hs_multi regexes: %ld\n", filtered_regex.size());
+
+        if (hs_multi_find_all(filtered_regex.data(), filtered_regex.size(), data.c_str(), data.size(), repeat, &results) == -1) {
             exit(EXIT_FAILURE);
         }
         printResult("hscan-multi", results);
@@ -364,9 +376,9 @@ int main(int argc, char **argv)
 
             /* write data */
             fprintf(f, "%lu;", regex.size());
-            fprintf(f, "%7.4f;", results->pre_time);
-            fprintf(f, "%7.1f;", results->time);
-            fprintf(f, "%d;", results->matches);
+            fprintf(f, "%7.4f;", results.pre_time);
+            fprintf(f, "%7.1f;", results.time);
+            fprintf(f, "%d;", results.matches);
             fprintf(f, "\n");
 
             fclose(f);

@@ -23,7 +23,6 @@ struct result {
 };
 
 void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res);
-void printResult(const char * name, struct result * res);
 
 #ifdef INCLUDE_CTRE
 int ctre_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
@@ -49,6 +48,8 @@ int tre_find_all(const char* pattern, const char* subject, int subject_len, int 
 int onig_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_HYPERSCAN
+#include <stdbool.h>
+bool hs_verify_regex(const char* pattern);
 int hs_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subject, int subject_len, int repeat, struct result * res);
 #endif
