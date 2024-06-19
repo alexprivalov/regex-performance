@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 struct engines {
     const char * name;
@@ -72,12 +73,12 @@ static struct engines engines [] = {
 
 static void printResult(const char * name, const struct result& res)
 {
-    fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: %8d\n", name
+    fprintf(stdout, "[%10s] pre_time: %7.4f ms, time: %7.1f ms (+/- %4.1f %%), matches: '%8d'\n", name
                 , res.pre_time, res.time, (res.time_sd / res.time) * 100, res.matches);
     fflush(stdout);
 }
 
-std::string load(const char * file_name)
+static std::string load(const char * file_name)
 {
     std::string ret;
 
@@ -98,7 +99,7 @@ std::string load(const char * file_name)
     return ret;
 }
 
-std::vector<std::string> loadRegex(char const * file_name)
+static std::vector<std::string> loadRegex(char const * file_name)
 {
     std::vector<std::string> regexes;
 
@@ -121,7 +122,7 @@ std::vector<std::string> loadRegex(char const * file_name)
     return regexes;
 }
 
-void find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * engine_results)
+static void find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * engine_results)
 {
     fprintf(stdout, "-----------------\nRegex: '%s'\n", pattern);
 
@@ -195,17 +196,46 @@ void get_mean_and_derivation(double pre_times, double * times, uint32_t times_le
     res->time_sd = sd;
 }
 
+static std::vector<std::string> str_split(const std::string &str, char delim) {
+    std::vector<std::string> ret;
+    std::stringstream ss(str);
+
+    while(ss.good()) {
+        std::string substr;
+        getline( ss, substr, delim );
+        ret.push_back( substr );
+    }
+
+    return ret;
+}
+
 int main(int argc, char **argv)
 {
     char const * file = NULL;
     char * out_file = NULL;
     char * input_regex = NULL;
+    char * test_data = NULL;
+    char * test_regex = NULL;
     int repeat = 5;
     int mode = 0;
     int c = 0;
 
-    while ((c = getopt(argc, argv, "n:m:i:hvf:o:")) != -1) {
+    while ((c = getopt(argc, argv, "n:m:i:hvf:o:t:e:")) != -1) {
         switch (c) {
+            case 't':
+                test_data = optarg;
+                if (test_data == NULL) {
+                    fprintf(stderr, "No test data given.\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'e':
+                test_regex = optarg;
+                if (test_regex == NULL) {
+                    fprintf(stderr, "No test regex given.\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
             case 'f':
                 file = optarg;
                 break;
@@ -241,6 +271,38 @@ int main(int argc, char **argv)
                 printf("  -h\tPrint this help message\n\n");
                 exit(EXIT_SUCCESS);
         }
+    }
+
+    if (test_data && test_regex) {
+        fprintf(stdout, "Test data: '%s'\n", test_data);
+        fprintf(stdout, "Test regex: '%s'\n", test_regex);
+
+        auto regx = str_split(test_regex, ',');
+
+        fprintf(stdout, "Total amount of regexes: %ld\n", regx.size());
+
+        std::vector<const char *> filtered_regex;
+        for (auto &regex_ : regx) {
+            fprintf(stdout, "Regex: %s\n", regex_.c_str());
+            if (hs_verify_regex(regex_.c_str())) {
+                filtered_regex.push_back(regex_.c_str());
+            }
+        }
+
+        fprintf(stdout, "Total amount of filtered regexes: %ld\n", filtered_regex.size());
+
+        struct result results = {};
+        if (hs_multi_find_all(filtered_regex.data(), 
+                                filtered_regex.size(), 
+                                test_data, 
+                                strlen(test_data), 
+                                repeat, 
+                                &results) == -1) {
+            exit(EXIT_FAILURE);
+        }
+        printResult("hscan-multi", results);
+
+        exit(EXIT_SUCCESS);
     }
 
     if (file == NULL) {
@@ -339,7 +401,6 @@ int main(int argc, char **argv)
 
     } else {
         printf("\n[Match regex patterns all together]\n\n");
-        struct result results = {};
 
         std::vector<const char *> filtered_regex;
         for (auto &regex_ : regexes) {
@@ -352,7 +413,13 @@ int main(int argc, char **argv)
 
         fprintf(stdout, "Total amount of valid for hs_multi regexes: %ld\n", filtered_regex.size());
 
-        if (hs_multi_find_all(filtered_regex.data(), filtered_regex.size(), data.c_str(), data.size(), repeat, &results) == -1) {
+        struct result results = {};
+        if (hs_multi_find_all(filtered_regex.data(), 
+                                filtered_regex.size(), 
+                                data.c_str(), 
+                                data.size(), 
+                                repeat, 
+                                &results) == -1) {
             exit(EXIT_FAILURE);
         }
         printResult("hscan-multi", results);

@@ -10,6 +10,18 @@ static int eventHandler(UNUSED unsigned int  id,
                         UNUSED unsigned long long to,
                         UNUSED unsigned int flags,
                         UNUSED void * ctx) {
+    fprintf(stdout, "Match for pattern \"%s\" at offset %llu\n", (char*)ctx, from);
+    found++;
+    return 0;
+}
+
+static int eventHandlerMulti(UNUSED unsigned int  id,
+                        UNUSED unsigned long long from,
+                        UNUSED unsigned long long to,
+                        UNUSED unsigned int flags,
+                        UNUSED void * ctx) {
+    const char ** patterns = (const char**)ctx;
+    fprintf(stdout, "%s Match for pattern \"%s\" at offset %llu\n", __func__, *(patterns+id), from);
     found++;
     return 0;
 }
@@ -43,7 +55,12 @@ int hs_find_all(const char* pattern, const char* subject, int subject_len, int r
     GET_TIME(start);
 
     hs_compile_error_t * compile_err;
-    if (hs_compile(pattern, HS_FLAG_DOTALL | HS_FLAG_MULTILINE | HS_FLAG_SOM_LEFTMOST, HS_MODE_BLOCK, NULL, &database, &compile_err) != HS_SUCCESS) {
+    if (hs_compile(pattern, 
+                    HS_FLAG_DOTALL | HS_FLAG_MULTILINE | HS_FLAG_SOM_LEFTMOST, 
+                    HS_MODE_BLOCK, 
+                    NULL, 
+                    &database, 
+                    &compile_err) != HS_SUCCESS) {
         fprintf(stderr, "ERROR: Unable to compile pattern \"%s\": %s\n",
                 pattern, compile_err->message);
         hs_free_compile_error(compile_err);
@@ -88,7 +105,8 @@ int hs_find_all(const char* pattern, const char* subject, int subject_len, int r
     return 0;
 }
 
-int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subject, int subject_len, int repeat, struct result * res)
+int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subject, int subject_len
+                        , int repeat, struct result * res)
 {
     TIME_TYPE start, end;
 
@@ -134,7 +152,14 @@ int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subje
     do {
         found = 0;
         GET_TIME(start);
-        if (hs_scan(database, subject, subject_len, 0, scratch, eventHandler, pattern) != HS_SUCCESS) {
+        printf("Scanning with ");
+        for (int i = 0; i < pattern_num; i++)
+        {
+            printf("'%s',", *(pattern+i));
+        }
+        printf("\n");
+
+        if (hs_scan(database, subject, subject_len, 0, scratch, eventHandlerMulti, pattern) != HS_SUCCESS) {
             fprintf(stderr, "ERROR: Unable to scan input buffer. Exiting.\n");
             hs_free_scratch(scratch);
             hs_free_database(database);
