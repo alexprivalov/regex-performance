@@ -162,7 +162,7 @@ static void find_all(const char* pattern, const char* subject, int subject_len, 
 
 }
 
-void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res)
+void get_mean_and_derivation(double pre_times, const double * times, uint32_t times_len, struct result * res)
 {
     double mean, sd, var, sum = 0.0, sdev = 0.0;
 
@@ -291,16 +291,32 @@ int main(int argc, char **argv)
 
         fprintf(stdout, "Total amount of filtered regexes: %ld\n", filtered_regex.size());
 
-        struct result results = {};
-        if (hs_multi_find_all(filtered_regex.data(), 
-                                filtered_regex.size(), 
-                                test_data, 
-                                strlen(test_data), 
-                                repeat, 
-                                &results) == -1) {
-            exit(EXIT_FAILURE);
+        {
+            struct result results = {};
+            if (hs_multi_find_all(filtered_regex.data(), 
+                                    filtered_regex.size(), 
+                                    test_data, 
+                                    strlen(test_data), 
+                                    repeat, 
+                                    &results) == -1) {
+                exit(EXIT_FAILURE);
+            }
+            printResult("hscan-multi", results);
         }
-        printResult("hscan-multi", results);
+
+        {
+            struct result results = {};
+            if (hs_multi_find_all_v2(filtered_regex.data(), 
+                                    filtered_regex.size(), 
+                                    test_data, 
+                                    strlen(test_data), 
+                                    repeat, 
+                                    &results) == -1) {
+                exit(EXIT_FAILURE);
+            }
+            printResult("hscan-multi v2", results);
+        }
+
 
         exit(EXIT_SUCCESS);
     }

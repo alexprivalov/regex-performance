@@ -24,6 +24,6 @@ WORKDIR /a/build
 RUN cmake ..
 RUN make
 
-ENTRYPOINT [ "/a/build/src/regex_perf" ] 
-CMD [ "-f", "/a//3200.txt"]
+# ENTRYPOINT [ "/a/build/src/regex_perf" ] 
+# CMD [ "-f", "/a//3200.txt"]
 

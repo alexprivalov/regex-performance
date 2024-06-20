@@ -16,7 +16,7 @@ set(REGEX_SOURCES
 
 # if(NOT ${INCLUDE_HYPERSCAN} MATCHES "disabled")
     add_definitions(-DINCLUDE_HYPERSCAN)
-    set(REGEX_SOURCES ${REGEX_SOURCES} hyperscan.c)
+    set(REGEX_SOURCES ${REGEX_SOURCES} hyperscan.cpp hyperscan_new.cpp)
     set(REGEX_ENGINES ${REGEX_ENGINES} hs)
 # endif()
 

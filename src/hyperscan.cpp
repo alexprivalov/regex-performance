@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <memory>
+#include <cstring>
 
+#include "hyperscan_new.hpp"
 #include "main.h"
 #include <hs/hs.h>
 
@@ -10,7 +13,7 @@ static int eventHandler(UNUSED unsigned int  id,
                         UNUSED unsigned long long to,
                         UNUSED unsigned int flags,
                         UNUSED void * ctx) {
-    fprintf(stdout, "Match for pattern \"%s\" at offset %llu\n", (char*)ctx, from);
+    fprintf(stdout, "Match for pattern \"%s\" at offset %llu:%llu\n", (char*)ctx, from, to);
     found++;
     return 0;
 }
@@ -21,7 +24,7 @@ static int eventHandlerMulti(UNUSED unsigned int  id,
                         UNUSED unsigned int flags,
                         UNUSED void * ctx) {
     const char ** patterns = (const char**)ctx;
-    fprintf(stdout, "%s Match for pattern \"%s\" at offset %llu\n", __func__, *(patterns+id), from);
+    fprintf(stdout, "%s Match for pattern \"%s\" at offset %llu:%llu\n", __func__, *(patterns+id), from, to);
     found++;
     return 0;
 }
@@ -77,7 +80,7 @@ int hs_find_all(const char* pattern, const char* subject, int subject_len, int r
     GET_TIME(end);
     pre_times = TIME_DIFF_IN_MS(start, end);
 
-    double * times = calloc(repeat, sizeof(double));
+    auto times = std::unique_ptr<double[]>(new double[repeat]);
     int const times_len = repeat;
 
     do {
@@ -87,7 +90,6 @@ int hs_find_all(const char* pattern, const char* subject, int subject_len, int r
             fprintf(stderr, "ERROR: Unable to scan input buffer. Exiting.\n");
             hs_free_scratch(scratch);
             hs_free_database(database);
-            free(times);
             return -1;
         }
         GET_TIME(end);
@@ -96,11 +98,10 @@ int hs_find_all(const char* pattern, const char* subject, int subject_len, int r
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(pre_times, times, times_len, res);
+    get_mean_and_derivation(pre_times, times.get(), times_len, res);
 
     hs_free_scratch(scratch);
     hs_free_database(database);
-    free(times);
 
     return 0;
 }
@@ -146,13 +147,13 @@ int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subje
     GET_TIME(end);
     pre_times = TIME_DIFF_IN_MS(start, end);
 
-    double * times = calloc(repeat, sizeof(double));
+    auto times = std::unique_ptr<double[]>(new double[repeat]);
     int const times_len = repeat;
 
     do {
         found = 0;
         GET_TIME(start);
-        printf("Scanning with ");
+        printf("%s Scanning with ", __func__);
         for (int i = 0; i < pattern_num; i++)
         {
             printf("'%s',", *(pattern+i));
@@ -163,7 +164,6 @@ int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subje
             fprintf(stderr, "ERROR: Unable to scan input buffer. Exiting.\n");
             hs_free_scratch(scratch);
             hs_free_database(database);
-            free(times);
             return -1;
         }
         GET_TIME(end);
@@ -172,11 +172,56 @@ int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subje
     } while (--repeat > 0);
 
     res->matches = found;
-    get_mean_and_derivation(pre_times, times, times_len, res);
+    get_mean_and_derivation(pre_times, times.get(), times_len, res);
 
     hs_free_scratch(scratch);
     hs_free_database(database);
-    free(times);
+
+    return 0;
+}
+
+int hs_multi_find_all_v2(const char ** pattern, int pattern_num, const char * subject, int subject_len
+                        , int repeat, struct result * res){
+    TIME_TYPE start, end;
+    modsecurity::Utils::HyperscanPm hs;
+
+    for (int i = 0; i < pattern_num; i++)
+    {
+        hs.addPattern(pattern[i], strlen(pattern[i]));
+    }
+
+    double pre_times = 0;
+    GET_TIME(start);
+    std::string error;
+    if (!hs.compile(&error)) {
+        fprintf(stderr, "ERROR: Unable to compile patterns: '%s'\n", error.c_str());
+        return -1;
+    }
+
+    GET_TIME(end);
+    pre_times = TIME_DIFF_IN_MS(start, end);
+
+    auto times = std::unique_ptr<double[]>(new double[repeat]);
+    int const times_len = repeat;
+    do {
+        GET_TIME(start);
+        std::vector<std::string> matches;
+        found = hs.search(subject, subject_len, matches);
+        if ( -1 == found ) {
+            fprintf(stderr, "ERROR: Unable to scan input buffer. Exiting.\n");
+            return -1;
+        }
+
+        // for (const auto &m : matches) {
+        //     fprintf(stdout, "Match for pattern \"%s\"\n", m.c_str());
+        // }
+        GET_TIME(end);
+
+        times[repeat - 1] = TIME_DIFF_IN_MS(start, end);
+    } while (--repeat > 0);
+
+    res->matches = found;
+    get_mean_and_derivation(pre_times, times.get(), times_len, res);
 
     return 0;
 }

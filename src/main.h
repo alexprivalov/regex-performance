@@ -22,7 +22,7 @@ struct result {
     int matches;
 };
 
-void get_mean_and_derivation(double pre_times, double * times, uint32_t times_len, struct result * res);
+void get_mean_and_derivation(double pre_times, const double * times, uint32_t times_len, struct result * res);
 
 #ifdef INCLUDE_CTRE
 int ctre_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
@@ -52,6 +52,7 @@ int onig_find_all(const char* pattern, const char* subject, int subject_len, int
 bool hs_verify_regex(const char* pattern);
 int hs_find_all(const char* pattern, const char* subject, int subject_len, int repeat, struct result * res);
 int hs_multi_find_all(const char ** pattern, int pattern_num, const char * subject, int subject_len, int repeat, struct result * res);
+int hs_multi_find_all_v2(const char ** pattern, int pattern_num, const char * subject, int subject_len, int repeat, struct result * res);
 #endif
 #ifdef INCLUDE_YARA
 int yara_find_all(char * pattern, char * subject, int subject_len, int repeat, struct result * res);
