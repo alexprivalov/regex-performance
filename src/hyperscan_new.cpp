@@ -22,19 +22,6 @@
 namespace modsecurity {
 namespace Utils {
 
-// // Render the given literal as a hex-escaped pattern.
-static
-std::string makeHex(const char *pat, const size_t patLen) {
-    std::string hexPattern;
-
-    char hex[5];
-    for (size_t i = 0; i < patLen; i++) {
-        snprintf(hex, 5, "\\x%02x", (unsigned char)pat[i]);
-        hexPattern += hex;
-    }
-    return hexPattern;
-}
-
 HyperscanPattern::HyperscanPattern(const char *pat, size_t patLen,
                                    unsigned int patId) :
                                    pattern(pat), len(patLen), id(patId) {}
@@ -69,21 +56,13 @@ bool HyperscanPm::compile(std::string *error) {
         return false;
     }
 
-    // // Convert literal to its hex-escaped format.
-    std::vector<std::string> hexPats;
-    for (const auto &p : patterns) {
-        hexPats.emplace_back(makeHex(p.pattern.c_str(), p.len));
-    }
-
     // The Hyperscan compiler takes its patterns in a group of arrays.
     std::vector<const char *> pats;
     std::vector<unsigned> flags(num_patterns, HS_FLAG_DOTALL | HS_FLAG_MULTILINE | HS_FLAG_SOM_LEFTMOST);//HS_FLAG_CASELESS);
     std::vector<unsigned> ids;
 
-    size_t i = 0;
     for (const auto &p : patterns) {
-        // pats.emplace_back(p.pattern.c_str());
-        pats.emplace_back(hexPats[i++].c_str());
+        pats.emplace_back(p.pattern.c_str());
         ids.emplace_back(p.id);
     }
 
@@ -162,8 +141,7 @@ int onMatch(unsigned int id, unsigned long long from, unsigned long long to,
     if (match)
         ctx->matches.push_back(match);
 
-    printf("Match for pattern \"%s\" at offset %llu:%llu\n", match, from, to);
-    // printf("Matches: %d\n", ctx->num_matches);
+    printf("%s Match for pattern \"%s\" at offset %llu:%llu\n", __func__, match, from, to);
     return ctx->terminateAfter1stMatch; // Terminate matching.
 }
 

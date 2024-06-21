@@ -219,6 +219,7 @@ int main(int argc, char **argv)
     int repeat = 5;
     int mode = 0;
     int c = 0;
+    std::vector<std::string> regexes;
 
     while ((c = getopt(argc, argv, "n:m:i:hvf:o:t:e:")) != -1) {
         switch (c) {
@@ -268,21 +269,29 @@ int main(int argc, char **argv)
                 printf("  -i\tRead regex patterns from file.\n");
                 printf("  -o\tWrite measured data into CSV file.\n");
                 printf("  -v\tGet the application version and build date.\n");
+                printf("  -t\tTest string, can work with -e option only. All other option will be ignored.\n");
+                printf("  -e\tPatterns, multple can be specified via coma(',').\n");
                 printf("  -h\tPrint this help message\n\n");
                 exit(EXIT_SUCCESS);
         }
     }
 
-    if (test_data && test_regex) {
-        fprintf(stdout, "Test data: '%s'\n", test_data);
+    if (test_regex) {
         fprintf(stdout, "Test regex: '%s'\n", test_regex);
+        regexes = str_split(test_regex, ',');
+    }
 
-        auto regx = str_split(test_regex, ',');
+    if (test_data && !test_regex) {
+        fprintf(stderr, "No test regex given.\n");
+        exit(EXIT_FAILURE);
+    }
 
-        fprintf(stdout, "Total amount of regexes: %ld\n", regx.size());
+    if (test_data) {
+        fprintf(stdout, "Test data: '%s'\n", test_data);
+        fprintf(stdout, "Total amount of regexes: %ld\n", regexes.size());
 
         std::vector<const char *> filtered_regex;
-        for (auto &regex_ : regx) {
+        for (auto &regex_ : regexes) {
             fprintf(stdout, "Regex: %s\n", regex_.c_str());
             if (hs_verify_regex(regex_.c_str())) {
                 filtered_regex.push_back(regex_.c_str());
@@ -326,12 +335,14 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    if (input_regex == NULL) {
+    if (!test_regex && !input_regex) {
         fprintf(stderr, "No input regex list given.\n");
         exit(EXIT_FAILURE);
     }
 
-    auto regexes = loadRegex(input_regex);
+    if (input_regex) {
+        regexes = loadRegex(input_regex);
+    }
     std::vector<const char *> regex;
     for (auto &regex_ : regexes) {
         fprintf(stdout, "Regex: %s\n", regex_.c_str());
@@ -368,8 +379,7 @@ int main(int argc, char **argv)
         }
 
         if (out_file != NULL) {
-            FILE * f;
-            f = fopen(out_file, "w");
+            FILE * f = fopen(out_file, "w");
             if (!f) {
                 fprintf(stderr, "Cannot open '%s'!\n", out_file);
                 exit(EXIT_FAILURE);
@@ -442,8 +452,7 @@ int main(int argc, char **argv)
 
         if (out_file != NULL) {
 
-            FILE * f;
-            f = fopen(out_file, "w");
+            FILE * f = fopen(out_file, "w");
             if (!f) {
                 fprintf(stderr, "Cannot open '%s'!\n", out_file);
                 exit(EXIT_FAILURE);
