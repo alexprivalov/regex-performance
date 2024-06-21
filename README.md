@@ -113,6 +113,7 @@ It is required either specify custom patterns with '-e' option or path to file t
 Examples:
 
 ./src/regex_perf -f data_to_be_grepped.txt -i regexes.txt
+./src/regex_perf -t "my test data" -e "tes,ata" -n1 -m1
 ./src/regex_perf -t "my test data" -e "\w*data\b" -n1 -m1
 ./src/regex_perf -f data_to_be_grepped.txt -e "\w*data\b"
 
