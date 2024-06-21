@@ -102,6 +102,20 @@ You can specify a file to write the test results per expression and engine:
 ```
 The test tool writes the results in a csv-compatible format.
 
+### Oleksandr Chupryna's modifications
+
+I've added 2 keys - '-t' - test data and '-e' - test pattern(s). Patterns can be specified separated by comma.
+Key '-m1' means run hyperscan_mutli.
+It is required either specify custom patterns with '-e' option or path to file that contains line by line regexes with '-i' option.
+
+'-n' option specifies quantity of rounds(5 is default)
+
+Examples:
+
+./src/regex_perf -f data_to_be_grepped.txt -i regexes.txt
+./src/regex_perf -t "my test data" -e "\w*data\b" -n1 -m1
+./src/regex_perf -f data_to_be_grepped.txt -e "\w*data\b"
+
 ## Spreadsheet generator
 
 We included a spreadsheet generator for easy visualization of the results. 
